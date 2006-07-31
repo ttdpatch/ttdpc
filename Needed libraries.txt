@@ -1,0 +1,7 @@
+TTDPC is written for Borland Delphi version 5.0, but should be able to compile
+in later versions too.
+
+It uses standard Delphi components plus some free libraries:
+
+JCL, JVCL: http://homepages.borland.com/jedi/jvcl/ - get the JVCL installer incorporating JCL
+ToolBar97: http://www.jrsoftware.org/tb97info.php  
