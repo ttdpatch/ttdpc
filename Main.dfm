@@ -5,10 +5,10 @@ object frmMain: TfrmMain
   Height = 466
   Caption = 'ttdpc - TTDPatch Configurator, Version 0.22 Beta'
   Color = clBtnFace
-  Font.Charset = ANSI_CHARSET
+  Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
-  Font.Name = 'Arial'
+  Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
@@ -208,7 +208,7 @@ object frmMain: TfrmMain
     object Label1: TLabel
       Left = 8
       Top = 8
-      Width = 52
+      Width = 51
       Height = 16
       Caption = 'Category'
     end
@@ -414,7 +414,7 @@ object frmMain: TfrmMain
       object lbSearch: TLabel
         Left = 16
         Top = 8
-        Width = 41
+        Width = 40
         Height = 16
         Caption = '&Search'
         FocusControl = edSearch

@@ -73,6 +73,7 @@ type
     fFileName: string;
     fVersion: string;
     fSwitches: array of TSwitch;
+    fEncoding: string;
     function GetSwitch(Index: Integer): TSwitch;
     procedure SetSwitch(Index: Integer; const Value: TSwitch);
     procedure SortByCategory;
@@ -88,6 +89,7 @@ type
     property Switches[Index: Integer]: TSwitch read GetSwitch write SetSwitch; default;
     property Lines: TStringList read fLines;
     property Version: string read fVersion;
+    property Encoding: string read fEncoding;
   end;
 
   TCategory = record
@@ -364,6 +366,14 @@ begin
     Result := StrToInt(s);
 end;
 
+function EncodingToCharset(Encoding: string): TFontCharset;
+begin
+  if (Encoding = 'ISO-8859-5') then
+    Result := RUSSIAN_CHARSET
+  else
+    Result := DEFAULT_CHARSET;
+end;
+
 { TCategories }
 
 function TCategories.AddSwitch(s: string; swRef, Level: Integer): integer;
@@ -620,6 +630,8 @@ var
       else begin
         fSwitches[SwitchCount].Name := Child.Properties.Value('name');
         fSwitches[SwitchCount].CmdLineSwitch := Child.Properties.Value('cmdline');
+        if (fSwitches[SwitchCount].CmdLineSwitch = '') then
+          fSwitches[SwitchCount].CmdLineSwitch := _('No command line switch');
         fSwitches[SwitchCount].DefStateValue := Child.Properties.Value('defstate');
         fSwitches[SwitchCount].CategoryNum := 0;
         fSwitches[SwitchCount].Category := CatStack[CatStackPtr - 1].Properties.Value('desc');
@@ -687,6 +699,8 @@ var
 begin
   frmMain.xml1.FileName := FileName;
 
+  fEncoding := frmMain.xml1.Prolog.Encoding;
+
   Root := frmMain.xml1.Root;
   if (Root.Name <> 'switches') then begin
     ShowMessage(Format(_('"switches" not found as root element in "%s". Terminating.'), [FileName]));
@@ -717,6 +731,8 @@ begin
 
       fSwitches[i].Name := Child.Properties.Value('name');
       fSwitches[i].CmdLineSwitch := Child.Properties.Value('cmdline');
+      if (fSwitches[i].CmdLineSwitch = '') then
+        fSwitches[i].CmdLineSwitch := _('No command line switch');
       fSwitches[i].DefStateValue := Child.Properties.Value('defstate');
       fSwitches[i].CategoryNum := Child.Properties.IntValue('categorynum');
       fSwitches[i].Category := Child.Properties.Value('category');
@@ -797,7 +813,7 @@ begin
     for i := 0 to Pred(Length(fSwitches)) do begin
       if (fSwitches[i].CategoryNum <> Cat) then begin
         sl.Add('');
-        sl.Add(Format(_('// ----- Category %s ------'),[fSwitches[i].Category]));
+        sl.Add(Format(_('// ----- Category %s ------'), [fSwitches[i].Category]));
         sl.Add('');
         Cat := fSwitches[i].CategoryNum;
       end;
@@ -1224,7 +1240,7 @@ begin
   if not FindTTDPatch then begin
     if SelectDirectory(_('Locate Your TTD folder'), '', TTDPath) then begin
       if not (SetCurrentDir(TTDPath) and FindTTDPatch) then begin
-        ShowMessage(Format(_('Could not find "%s" or "%s". Aborting.'),[PATCH_WIN_NAME, PATCH_DOS_NAME]));
+        ShowMessage(Format(_('Could not find "%s" or "%s". Aborting.'), [PATCH_WIN_NAME, PATCH_DOS_NAME]));
         DebugHalt;
       end
     end
@@ -1247,6 +1263,7 @@ begin
 
   ConfigFile := TSwitchList.Create;
   ConfigFile.LoadTemplateFile(PATCH_TEMPLATE_FILE);
+  //mmDescription.Font.Charset := EncodingToCharset(ConfigFile.Encoding);
   edSwVersion.Text := ConfigFile.Version;
 
   if not FileExists(PATCH_CONFIG_FILE) then begin
@@ -1257,7 +1274,7 @@ begin
   end;
 
   if not ConfigFile.LoadConfigFile(PATCH_CONFIG_FILE) then begin
-    ShowMessage(Format(_('File "%s" can not be found or read. Aborting.'),[PATCH_CONFIG_FILE]));
+    ShowMessage(Format(_('File "%s" can not be found or read. Aborting.'), [PATCH_CONFIG_FILE]));
     DebugHalt;
   end;
 
@@ -1434,7 +1451,7 @@ begin
                 BitName := Trim(Copy(BitName, 1, p - 1))
               else
                 BitName := Trim(BitName);
-              BitDescription := Format(_('%s is not defined!'),[BitName]);
+              BitDescription := Format(_('%s is not defined!'), [BitName]);
               CurBitIx := -2;
               for b := 0 to Pred(Length(CurSwitch.BitDescr)) do begin
                 if (CurSwitch.BitDescr[b].Name = BitName) then begin
@@ -1727,7 +1744,7 @@ begin
     Outline1.SelectedItem := i;
     Exit;
   end;
-  ShowMessage(Format(_('Search string "%s" not found'),[edSearch.Text]));
+  ShowMessage(Format(_('Search string "%s" not found'), [edSearch.Text]));
 end;
 
 procedure TfrmMain.btnFindNextClick(Sender: TObject);
@@ -1743,7 +1760,7 @@ begin
     Outline1.SelectedItem := i;
     Exit;
   end;
-  ShowMessage(Format(_('No more matches for "%s"'),[edSearch.text]));
+  ShowMessage(Format(_('No more matches for "%s"'), [edSearch.text]));
 end;
 
 procedure TfrmMain.edSearchChange(Sender: TObject);
@@ -1947,7 +1964,7 @@ end;
 
 procedure TfrmMain.BackupOldConfigFile(FileName: string);
 var
-  i: Integer;
+  i                 : Integer;
 begin
   i := 0;
   while (FileExists(Format('%s.%4.4d', [FileName, i]))) do

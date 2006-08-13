@@ -1,0 +1,353 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2006-07-31 17:14\n"
+"PO-Revision-Date: 2006-07-31 17:14\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.1\n"
+
+#. frmMain..Caption
+#: Main.dfm:6
+msgid "ttdpc - TTDPatch Configurator, Version 0.22 "
+"Beta"
+msgstr ""
+
+#. frmMain..Font.Name
+#: Main.dfm:11
+msgid "Arial"
+msgstr ""
+
+#. frmMain..ButtonPanel..btnExit..Hint
+#: Main.dfm:32
+msgid "Exit the program"
+msgstr ""
+
+#. frmMain..ButtonPanel..btnSaveCanonFormat..Hint
+#: Main.dfm:54
+msgid "Save the config file (in normal format)"
+msgstr ""
+
+#. frmMain..ButtonPanel..btnExpand..Hint
+#: Main.dfm:76
+msgid "Expand all caregories"
+msgstr ""
+
+#. frmMain..ButtonPanel..btnCollapse..Hint
+#: Main.dfm:112
+msgid "Collapse all categories"
+msgstr ""
+
+#. frmMain..ButtonPanel..btnSaveUserFormat..Hint
+#: Main.dfm:148
+msgid "Save the config file (in user format)"
+msgstr ""
+
+#. frmMain..ButtonPanel..Label2..Caption
+#: Main.dfm:185
+msgid "TTDPatch version:"
+msgstr ""
+
+#. frmMain..ButtonPanel..edSwVersion..Hint
+#: Main.dfm:192
+msgid "The version of TTDPATCH "
+msgstr ""
+
+#. frmMain..ButtonPanel..edSwVersion..Text
+#: Main.dfm:198
+msgid "edSwVersion"
+msgstr ""
+
+#. frmMain..InfoPanel..Label1..Caption
+#: Main.dfm:213
+#. Category or bitswitch
+#: Main.pas:1386
+msgid "Category"
+msgstr ""
+
+#. frmMain..InfoPanel..lbTextVale..Caption
+#: Main.dfm:220
+msgid "Switch value"
+msgstr ""
+
+#. frmMain..InfoPanel..mmDescription..Hint
+#: Main.dfm:227
+msgid "The description of a switch"
+msgstr ""
+
+#. frmMain..InfoPanel..mmDescription....Lines.Strings
+#: Main.dfm:232
+#: Main.pas:1387
+msgid "Double-Click or press plus key to expand"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsText..Caption
+#: Main.dfm:246
+msgid "tsText"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsText..edTextValue..Hint
+#: Main.dfm:253
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..edSmallRange..Hint
+#: Main.dfm:305
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..edLargeRange..Hint
+#: Main.dfm:357
+msgid "Enter the switch value"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBool..Caption
+#: Main.dfm:259
+msgid "tsBool"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBool..GroupBox3..rgBoolOff..Hint
+#: Main.dfm:273
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmOff..Hint
+#: Main.dfm:315
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaOff..Hint
+#: Main.dfm:375
+msgid "Turn the switch off"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBool..GroupBox3..rgBoolOff..Caption
+#: Main.dfm:274
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmOff..Caption
+#: Main.dfm:316
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaOff..Caption
+#: Main.dfm:376
+msgid "o&ff"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBool..GroupBox3..rgBoolOn..Hint
+#: Main.dfm:283
+msgid "Turn the switch on"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBool..GroupBox3..rgBoolOn..Caption
+#: Main.dfm:284
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmOn..Caption
+#: Main.dfm:326
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaOn..Caption
+#: Main.dfm:386
+msgid "o&n"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..Caption
+#: Main.dfm:291
+msgid "tsSmallRange"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmOn..Hint
+#: Main.dfm:325
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaOn..Hint
+#: Main.dfm:385
+msgid "Turn the switch on with the default "
+"value"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmValue..Hint
+#: Main.dfm:335
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaValue..Hint
+#: Main.dfm:395
+msgid "Turn the switch on with this value"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsSmallRange..GroupBox1..rgSmValue..Caption
+#: Main.dfm:336
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..rgLaValue..Caption
+#: Main.dfm:396
+msgid "&value"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..Caption
+#: Main.dfm:343
+msgid "tsLargeRange"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsLargeRange..GroupBox2..edLargeRange..CheckChars
+#: Main.dfm:360
+msgid "01234567890"
+msgstr ""
+
+#. frmMain..InfoPanel..pgEdits..tsBlank..Caption
+#: Main.dfm:403
+msgid "tsBlank"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..lbSearch..Caption
+#: Main.dfm:421
+msgid "&Search"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..edSearch..Hint
+#: Main.dfm:429
+msgid "Text to search for"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..cbSearchDescription..Hint
+#: Main.dfm:439
+msgid "Search the description instead of the "
+"names"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..cbSearchDescription..Caption
+#: Main.dfm:440
+msgid "Search &description"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..btnFindFirst..Hint
+#: Main.dfm:448
+msgid "Find the first matching switch"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..btnFindFirst..Caption
+#: Main.dfm:449
+msgid "&First"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..btnFindNext..Hint
+#: Main.dfm:458
+msgid "Find next matching switch"
+msgstr ""
+
+#. frmMain..InfoPanel..SearchPanel..btnFindNext..Caption
+#: Main.dfm:459
+msgid "&Next"
+msgstr ""
+
+#. frmMain..InfoPanel..btnUndo..Hint
+#: Main.dfm:469
+msgid "Undo the change"
+msgstr ""
+
+#. frmMain..InfoPanel..btnUndo..Caption
+#: Main.dfm:470
+msgid "&Undo"
+msgstr ""
+
+#. frmMain..Outline1..Hint
+#: Main.dfm:482
+msgid "Double click a Category to see the switches"
+msgstr ""
+
+#. frmMain..Outline1..ItemSeparator
+#: Main.dfm:489
+msgid "\\"
+msgstr ""
+
+#. frmMain..xml1..IndentString
+#: Main.dfm:492
+msgid "  "
+msgstr ""
+
+#: Main.pas:297
+msgid "(Error: Unexpected argument type)"
+msgstr ""
+
+#. Bitname not found
+#: Main.pas:522
+msgid "Bitfield \"%s\" is not defined for \"%s\""
+msgstr ""
+
+#. Not found
+#: Main.pas:532
+msgid "<Undefined switches>"
+msgstr ""
+
+#: Main.pas:533
+msgid "Switch not defined in \"%s\""
+msgstr ""
+
+#: Main.pas:563
+msgid "<none>"
+msgstr ""
+
+#: Main.pas:661
+#: Main.pas:756
+msgid "\"%s\" is not a bitfield of %s! Ignored."
+msgstr ""
+
+#: Main.pas:669
+#: Main.pas:764
+msgid "\"%s\" is not a recognized switch type! The XML file is "
+"corrupt."
+msgstr ""
+
+#: Main.pas:691
+msgid "\"switches\" not found as root element in \"%s\". "
+"Terminating."
+msgstr ""
+
+#: Main.pas:799
+msgid "// ----- Category %s ------"
+msgstr ""
+
+#. Add new switches
+#: Main.pas:1000
+msgid "// Additional switches not previously in the "
+"file"
+msgstr ""
+
+#: Main.pas:1209
+msgid "%s, Version: %s"
+msgstr ""
+
+#: Main.pas:1223
+msgid "Locate Your TTD folder"
+msgstr ""
+
+#: Main.pas:1225
+msgid "Could not find \"%s\" or \"%s\". Aborting."
+msgstr ""
+
+#: Main.pas:1230
+msgid "Aborted."
+msgstr ""
+
+#: Main.pas:1242
+msgid "Could not create \"%s\". Aborting."
+msgstr ""
+
+#: Main.pas:1252
+msgid "Could not create \"%s\". Aborting.\""
+msgstr ""
+
+#: Main.pas:1258
+msgid "File \"%s\" can not be found or read. "
+"Aborting."
+msgstr ""
+
+#: Main.pas:1381
+msgid "Edit the switch value in the box to the "
+"Right"
+msgstr ""
+
+#: Main.pas:1388
+msgid "Double-click to collapse/expand"
+msgstr ""
+
+#: Main.pas:1435
+msgid "%s is not defined!"
+msgstr ""
+
+#: Main.pas:1499
+#: Main.pas:1516
+msgid "http://wiki.ttdpatch.net/tiki-index.php?page=%s"
+msgstr ""
+
+#: Main.pas:1727
+msgid "Search string \"%s\" not found"
+msgstr ""
+
+#: Main.pas:1743
+msgid "No more matches for \"%s\""
+msgstr ""
+
