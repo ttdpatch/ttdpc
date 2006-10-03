@@ -1,11 +1,12 @@
 unit Main;
 
-{ DONE 1  -cbasic funtionality : Patchman: For bit switches, you should provide a way to switch the entire switch off (and maybe on). Setting all bits to off does not turn off the switch (important e.g. for "mousewheel" and especially "newsounds"). }
+{ DONE 1 -cBUG : Switches of the swSpecial kind which actually had a value generated 'Config not found!' error. }
+{ DONE 1 -cbasic funtionality : Patchman: For bit switches, you should provide a way to switch the entire switch off (and maybe on). Setting all bits to off does not turn off the switch (important e.g. for "mousewheel" and especially "newsounds"). }
 { DONE 1 -cbasic functionality : csaba: Bitswitches that are OFF on load gets saved with all bits explicit. This is wrong. }
 { DONE 1 -cGUI : csaba: Enter range values as off/on/on value [editbox] }
 { DONE 1 -cbasic functionality : Hyro: create ttdpatch(w).cfg if it doesn't exist}
 { DONE 1 -cGUI : Csaba: drop the Update button, introduce Revert }
-{ DONE  -cbasic functionality : eis_os: Terminate app if ttdpatch(w) is missing  }
+{ DONE 1 -cbasic functionality : eis_os: Terminate app if ttdpatch(w) is missing  }
 { DONE 2 -cGUI : Patchman: Tooltips would be nice for the toolbar buttons, and/or text below the buttons. }
 { DONE 2 -cGUI : Patchman: It'd be nice to have Alt keys for the switch values and search box, e.g. alt-n = On, alt-f = Off, alt-v = Switch value, alt-s = Search string, and also the "Update" button. }
 { DONE 2 -cInstallation/Setup :  now it must be placed in same folder as TTD. It'd be good to add option to browse for TTD (I usually hold all tools in separate folder). }
@@ -17,7 +18,6 @@ unit Main;
 { TODO 5 -cAdditional functions : nice to have the possibility to save different configurations and reload them, depending on the game you want to play }
 { TODO 5 -cGUI : Patchman: I think "First/Next" should be "Search/Again"  ## Why}
 { DONE 5 -cGUI : eis_os: 'Update' should be called 'Save settings' ## Superceeded by GUI change}
-
 interface
 
 uses
@@ -509,9 +509,10 @@ begin
           fSwitches[i].OriginalValue := fSwitches[i].ConfigValue;
         end
         else begin
-          // 0 means 'off' if out of range
-          if (ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue) = 0) and (fSwitches[i].RangeLow > 0) then
-            SwitchValue := 'off';
+          if (fSwitches[i].SwitchType <> swSpecial) then
+            // 0 means 'off' if out of range
+            if (ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue) = 0) and (fSwitches[i].RangeLow > 0) then
+              SwitchValue := 'off';
           fSwitches[i].ConfigValue := SwitchValue;
           fSwitches[i].OriginalValue := SwitchValue;
         end;
