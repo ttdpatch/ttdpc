@@ -1,7 +1,7 @@
 unit Main;
 
 { DONE 1 -cBUG : Switches of the swSpecial kind which actually had a value generated 'Config not found!' error. }
-{ DONE 1 -cbasic funtionality : Patchman: For bit switches, you should provide a way to switch the entire switch off (and maybe on). Setting all bits to off does not turn off the switch (important e.g. for "mousewheel" and especially "newsounds"). }
+{ DONE 1  -cbasic funtionality : Patchman: For bit switches, you should provide a way to switch the entire switch off (and maybe on). Setting all bits to off does not turn off the switch (important e.g. for "mousewheel" and especially "newsounds"). }
 { DONE 1 -cbasic functionality : csaba: Bitswitches that are OFF on load gets saved with all bits explicit. This is wrong. }
 { DONE 1 -cGUI : csaba: Enter range values as off/on/on value [editbox] }
 { DONE 1 -cbasic functionality : Hyro: create ttdpatch(w).cfg if it doesn't exist}
@@ -47,9 +47,10 @@ type
   TSwitch = record
     SwitchType: TSwitchType;
     Name: string;
-    RangeLow: Integer;
-    RangeHigh: Integer;
-    DefValue: Integer;
+    RangeLow: Int64;
+    RangeHigh: Int64;
+    DefValue: Int64;
+    Base: Integer;
     BitDescr: TBitDescrArray;
     CmdLineSwitch: string;
     DefStateValue: string;
@@ -171,8 +172,6 @@ type
     procedure btnCollapseClick(Sender: TObject);
     procedure btnExitClick(Sender: TObject);
     procedure btnSaveCanonFormatClick(Sender: TObject);
-    procedure Outline1KeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure edTextValueChange(Sender: TObject);
     procedure UpdateView;
     procedure edLargeRangeChange(Sender: TObject);
@@ -195,6 +194,8 @@ type
     procedure Outline1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure JvAppEvents1Message(var Msg: tagMSG; var Handled: Boolean);
+    procedure mmDescriptionDblClick(Sender: TObject);
+    procedure mmDescriptionExit(Sender: TObject);
   private
     { Private declarations }
     ConfigFile: TSwitchList;
@@ -217,8 +218,8 @@ type
     function CreateConfigFile: Boolean;
     procedure DisableAllInput;
     procedure EnableBoolInput(s, vDef: string);
-    procedure EnableLargeRangeInput(s: string; vMin, vMax, vDef: integer);
-    procedure EnableSmallRangeInput(s: string; vMin, vMax, vDef: integer);
+    procedure EnableLargeRangeInput(s: string; vMin, vMax, vDef: int64; Base: Integer);
+    procedure EnableSmallRangeInput(s: string; vMin, vMax, vDef: integer; Base: Integer);
     procedure EnableTextInput(s: string);
     procedure FillOutline(Categories: TCategories; SwitchList: TSwitchList);
     procedure FixOutlineLevels;
@@ -267,6 +268,7 @@ const
     $10000000, $20000000, $40000000, $80000000
     );
 
+  BaseDigits                  : string = '0123456789ABCDEF';
 
 procedure DebugHalt;
 begin
@@ -279,7 +281,79 @@ end;
   field. Different versions of the XML seems to have different number of fields.
 }
 
-function SafeFormat(f: string; args: array of const): string;
+function IntToStrBased(Value: Int64; Base: Integer): string; overload;
+var
+  Sign                        : string;
+  Digit                       : Integer;
+begin
+  if (Base < 1) or (Base = 10) then begin
+    Result := IntToStr(Value);
+  end
+  else if Value = 0 then begin
+    Result := '0';
+  end
+  else begin
+    if Value < 0 then begin
+      // Watch out for -MaxInt64! Fix later...
+      Value := -Value;
+      Sign := '-';
+    end
+    else begin
+      Sign := '';
+    end;
+    Result := '';
+    while Value > 0 do begin
+      Digit := (Value mod Base) + 1;
+      Result := BaseDigits[Digit] + Result;
+      Value := Value div Base;
+    end;
+    Result := Sign + Result;
+  end
+end;
+
+function IntToStrBased(Value: Integer; Base: Integer): string; overload;
+var
+  Value64: Int64;
+begin
+  Value64 := Value;
+  Result := IntToStrBased(Value64, Base);
+end;
+
+function StrToIntBased(ValueStr: string; Base: Integer): Int64;
+var
+  Index                       : Integer;
+  Sign                        : Integer;
+begin
+  Result := 0;
+  if (Base < 1) or (Base = 10) then begin
+    Result := StrToInt(ValueStr);
+  end
+  else if Length(ValueStr) > 0 then begin
+    if ValueStr[1] = '-' then begin
+      Delete(ValueStr, 1, 1);
+      Sign := -1;
+    end
+    else begin
+      Sign := 1;
+    end;
+    for Index := 1 to Length(ValueStr) do begin
+      Result := Base * Result + Pos(ValueStr[Index], BaseDigits) - 1;
+    end;
+    Result := Sign * Result;
+  end;
+end;
+
+function Int64ToStrDec(Value: Int64): string;
+begin
+  Result := IntToStr(Value);
+end;
+
+function IntToStrDec(Value: Integer): string;
+begin
+  Result := IntToStr(Value);
+end;
+
+function SafeFormat(f: string; args: array of const; Base: Integer = 10): string;
 var
   p1, p2            : Integer;
   ArgIx             : Integer;
@@ -292,8 +366,8 @@ begin
   while (p1 > 0) do begin
     if (ArgIx <= High(args)) then begin
       case args[ArgIx].VType of
-        System.vtInteger: ArgString := IntToStr(args[ArgIx].VInteger);
-        System.vtInt64: ArgString := IntToStr(args[ArgIx].VInt64^);
+        System.vtInteger: ArgString := IntToStrBased(args[ArgIx].VInteger, Base);
+        System.vtInt64: ArgString := IntToStrBased(args[ArgIx].VInt64^, Base);
         System.vtString: ArgString := args[ArgIx].VString^;
         System.vtAnsiString: ArgString := PChar(args[ArgIx].VAnsiString);
         else
@@ -338,7 +412,7 @@ begin
     Result := False;
 end;
 
-function BinStrToInt(s: string): Integer;
+function BinStrToInt(s: string): Integer; // ### might need to go 64 bit
 var
   i                 : Integer;
 begin
@@ -346,12 +420,13 @@ begin
   i := 1;
   while (i <= Length(s)) do begin
     Result := Result * 2;
-    if (s[i] = '1') then Inc(Result);
+    if (s[i] = '1') then
+      Inc(Result);
     Inc(i);
   end
 end;
 
-function ConvertSwitchStrToInt(Str: string; DefVal: DWORD): DWORD;
+function ConvertSwitchStrToInt(Str: string; DefVal: Int64; Base: Integer): Int64;
 var
   s                 : string;
 begin
@@ -363,7 +438,7 @@ begin
   else if (Length(s) > 0) and (s[1] = '#') then
     Result := BinStrToInt(Copy(s, 2, MaxInt))
   else
-    Result := StrToInt(s);
+    Result := StrToIntBased(s, Base);
 end;
 
 function EncodingToCharset(Encoding: string): TFontCharset;
@@ -488,7 +563,7 @@ begin
           if IsNumericString(SwitchValue) then begin
             fSwitches[i].ConfigValue := 'on';
             // Decode the bits
-            bw := ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue);
+            bw := ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue, fSwitches[i].Base);
             for b := 0 to Pred(Length(fSwitches[i].BitDescr)) do begin
               fSwitches[i].BitDescr[b].Changed := True;
               if ((bw and Pow2[fSwitches[i].BitDescr[b].BitNum]) <> 0) then
@@ -511,7 +586,8 @@ begin
         else begin
           if (fSwitches[i].SwitchType <> swSpecial) then
             // 0 means 'off' if out of range
-            if (ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue) = 0) and (fSwitches[i].RangeLow > 0) then
+            if (ConvertSwitchStrToInt(SwitchValue, fSwitches[i].DefValue, fSwitches[i].Base) = 0)
+              and (fSwitches[i].RangeLow > 0) then
               SwitchValue := 'off';
           fSwitches[i].ConfigValue := SwitchValue;
           fSwitches[i].OriginalValue := SwitchValue;
@@ -580,7 +656,7 @@ begin
         if (Length(s) = 0) then
           ic := False;
         if ic then begin
-          InitialComments := InitialComments + #13 + #10 + Trim(fLines[i]);
+          InitialComments := InitialComments + Trim(fLines[i])+ #13 + #10;
         end
       end
       else begin
@@ -644,17 +720,21 @@ var
         fSwitches[SwitchCount].ManPage := Child.Properties.Value('manpage');
         fSwitches[SwitchCount].ValidDigits := Child.Properties.Value('validdigits');
         fSwitches[SwitchCount].Changed := False;
+        fSwitches[SwitchCount].Base := -1;
 
         if (Child.Name = 'bool') then begin
           fSwitches[SwitchCount].SwitchType := swBool;
           fSwitches[SwitchCount].ConfigValue := fSwitches[SwitchCount].DefStateValue;
         end
         else if (Child.Name = 'range') then begin
+          fSwitches[SwitchCount].Base := Child.Properties.IntValue('base');
+          if fSwitches[SwitchCount].Base = 0 then
+            fSwitches[SwitchCount].Base := 10;
           fSwitches[SwitchCount].SwitchType := swRange;
-          fSwitches[SwitchCount].RangeLow := Child.Properties.IntValue('min');
-          fSwitches[SwitchCount].RangeHigh := Child.Properties.IntValue('max');
-          fSwitches[SwitchCount].DefValue := Child.Properties.IntValue('default');
-          fSwitches[SwitchCount].ConfigValue := IntToStr(fSwitches[SwitchCount].DefValue);
+          fSwitches[SwitchCount].RangeLow := StrToIntBased(Child.Properties.Value('min'), fSwitches[SwitchCount].Base);
+          fSwitches[SwitchCount].RangeHigh := StrToIntBased(Child.Properties.Value('max'), fSwitches[SwitchCount].Base);
+          fSwitches[SwitchCount].DefValue := StrToIntBased(Child.Properties.Value('default'), fSwitches[SwitchCount].Base);
+          fSwitches[SwitchCount].ConfigValue := IntToStrBased(fSwitches[SwitchCount].DefValue, fSwitches[SwitchCount].Base);
         end
         else if (Child.Name = 'bitswitch') then begin
           fSwitches[SwitchCount].SwitchType := swBit;
@@ -744,17 +824,23 @@ begin
       fSwitches[i].ManPage := fSwitches[i].Name;
       fSwitches[SwitchCount].ValidDigits := '';
       fSwitches[i].Changed := False;
+      fSwitches[SwitchCount].Base := -1;
 
       if (Child.Name = 'bool') then begin
         fSwitches[i].SwitchType := swBool;
         fSwitches[i].ConfigValue := fSwitches[i].DefStateValue;
       end
       else if (Child.Name = 'range') then begin
+        // 'base' Should never occur in old XML
+        fSwitches[SwitchCount].Base := Child.Properties.IntValue('base');
+        if fSwitches[SwitchCount].Base = 0 then
+          fSwitches[SwitchCount].Base := 10;
+
         fSwitches[i].SwitchType := swRange;
-        fSwitches[i].RangeLow := Child.Properties.IntValue('min');
-        fSwitches[i].RangeHigh := Child.Properties.IntValue('max');
-        fSwitches[i].DefValue := Child.Properties.IntValue('default');
-        fSwitches[i].ConfigValue := IntToStr(fSwitches[i].DefValue);
+        fSwitches[i].RangeLow := StrToIntBased(Child.Properties.Value('min'), fSwitches[SwitchCount].Base);
+        fSwitches[i].RangeHigh := StrToIntBased(Child.Properties.Value('max'), fSwitches[SwitchCount].Base);
+        fSwitches[i].DefValue := StrToIntBased(Child.Properties.Value('default'), fSwitches[SwitchCount].Base);
+        fSwitches[i].ConfigValue := IntToStrBased(fSwitches[SwitchCount].DefValue, fSwitches[SwitchCount].Base);
       end
       else if (Child.Name = 'bitswitch') then begin
         fSwitches[i].SwitchType := swBit;
@@ -1127,6 +1213,7 @@ var
   b                 : Integer;
   bfc               : Integer;
   j                 : Integer;
+  NewMarker         : string;
 begin
   ctx := 0;
   for i := 0 to Pred(Categories.Count) do begin
@@ -1138,16 +1225,25 @@ begin
       swxe := Length(SwitchList.fSwitches) - 1;
     swx := 0;
     for j := swxb to swxe do begin
+      if not SwitchList.fSwitches[j].Changed then
+        NewMarker := '        *** Not in ttdpatch.cfg ***'
+      else
+        NewMarker := '';
+
       if (SwitchList.fSwitches[j].SwitchType = swBit) then begin
         swx := Outline1.AddChild(ctx, SwitchList.fSwitches[j].Name + ' ' + SwitchList.fSwitches[j].ConfigValue);
         Outline1[swx].Data := Pointer(j);
         for b := 0 to Pred(Length(SwitchList.fSwitches[j].BitDescr)) do begin
-          bfc := Outline1.AddChild(swx, SwitchList.fSwitches[j].BitDescr[b].Name + ' ' + SwitchList.fSwitches[j].BitDescr[b].ConfigValue);
+          if not SwitchList.fSwitches[j].BitDescr[b].Changed then
+            NewMarker := '        *** Not in ttdpatch.cfg ***'
+          else
+            NewMarker := '';
+          bfc := Outline1.AddChild(swx, SwitchList.fSwitches[j].BitDescr[b].Name + ' ' + SwitchList.fSwitches[j].BitDescr[b].ConfigValue + NewMarker);
           Outline1[bfc].Data := Pointer(j);
         end
       end
       else begin
-        swx := Outline1.AddChild(ctx, SwitchList.fSwitches[j].Name + ' ' + SwitchList.fSwitches[j].ConfigValue);
+        swx := Outline1.AddChild(ctx, SwitchList.fSwitches[j].Name + ' ' + SwitchList.fSwitches[j].ConfigValue + NewMarker);
         Outline1[swx].Data := Pointer(j);
       end
     end
@@ -1204,7 +1300,7 @@ begin
       else begin
         Level := Level - ix;
       end;
-      s := s + '|' + IntToStr(Integer(Outline1.Items[i].Data));
+      s := s + '|' + IntToStrDec(Integer(Outline1.Items[i].Data));
       sl.Add(StringOfChar(#9, Level - 1) + s);
     end;
     sl.SaveToFile('qwe.txt');
@@ -1283,6 +1379,8 @@ begin
   Categories.FillFromSwitchList(ConfigFile);
   FillOutline(Categories, ConfigFile);
   FixOutlineLevels;
+  mmDescription.Text := ConfigFile.InitialComments;
+
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
@@ -1325,22 +1423,22 @@ begin
   CurResult := crBool;
 end;
 
-procedure TfrmMain.EnableSmallRangeInput(s: string; vMin, vMax, vDef: integer);
+procedure TfrmMain.EnableSmallRangeInput(s: string; vMin, vMax, vDef: integer; Base: Integer);
 begin
   if (CurSwitch.ValidDigits <> '') then begin
-    EnableLargeRangeInput(s, vMin, vMax, vDef);
+    EnableLargeRangeInput(s, vMin, vMax, vDef, Base);
   end
   else begin
     pgEdits.ActivePage := tsSmallRange;
     edSmallRange.MinValue := vMin;
     edSmallRange.MaxValue := vMax;
     if (s = 'off') or (s = 'no') or (s = 'n') then begin
-      s := IntToStr(vDef);
+      s := IntToStrBased(vDef, Base);
       rgSmOff.Checked := True;
       edSmallRange.Enabled := False;
     end
     else if (s = 'on') or (s = 'yes') or (s = 'y') then begin
-      s := IntToStr(vDef);
+      s := IntToStrBased(vDef, Base);
       rgSmOn.Checked := True;
       edSmallRange.Enabled := False;
     end
@@ -1354,7 +1452,7 @@ begin
   end
 end;
 
-procedure TfrmMain.EnableLargeRangeInput(s: string; vMin, vMax, vDef: integer);
+procedure TfrmMain.EnableLargeRangeInput(s: string; vMin, vMax, vDef: Int64; Base: Integer);
 begin
   pgEdits.ActivePage := tsLargeRange;
   edLargeRange.MinValue := vMin;
@@ -1364,12 +1462,12 @@ begin
   else
     edLargeRange.CheckChars := '0123456789';
   if (s = 'off') or (s = 'no') or (s = 'n') then begin
-    s := IntToStr(vDef);
+    s := IntToStrBased(vDef, Base);
     rgLaOff.Checked := True;
     edLargeRange.Enabled := False;
   end
   else if (s = 'on') or (s = 'yes') or (s = 'y') then begin
-    s := IntToStr(vDef);
+    s := IntToStrBased(vDef, Base);
     rgLaOn.Checked := True;
     edLargeRange.Enabled := False;
   end
@@ -1403,20 +1501,22 @@ begin
   ix := Outline1.SelectedItem;
   if (ix >= 0) then begin
     if (Outline1[ix].HasItems) then begin // Category or bitswitch
-      Label1.Caption := _('Category');
-      mmDescription.Text := _('Double-Click or press plus key to expand');
+
+      Label1.Caption := _('File comments');
+      mmDescription.Text := ConfigFile.InitialComments;
+
       Outline1.Hint := _('Double-click to collapse/expand');
       ix := Integer(Outline1[ix].Data);
       if (ix >= 0) and (ix < Length(ConfigFile.fSwitches)) then begin
         CurSwitch := @ConfigFile.fSwitches[ix];
         btnUndo.Enabled := CurSwitch.ConfigValue <> CurSwitch.OriginalValue;
-        Label1.Caption := SwitchTypeNames[CurSwitch.SwitchType];
         s := CurSwitch.Description;
         s := StringReplace(s, '%ld', '%d', [rfReplaceAll]);
         s := StringReplace(s, '%02lx', '%2.2x', [rfReplaceAll]);
         swName := CurSwitch.Name;
         swCmd := CurSwitch.CmdLineSwitch;
         if (CurSwitch.SwitchType = swBit) then begin
+          Label1.Caption := SwitchTypeNames[CurSwitch.SwitchType];
           mmDescription.Text := SafeFormat(s, [swName, swCmd]);
           EnableBoolInput(CurSwitch.ConfigValue, CurSwitch.DefStateValue);
           CurBitIx := -1;
@@ -1469,10 +1569,10 @@ begin
               mmDescription.Text := SafeFormat(s, [swName, swCmd,
                 CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue]);
               if ((CurSwitch.RangeHigh - CurSwitch.RangeLow) <= 255) then begin
-                EnableSmallRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue);
+                EnableSmallRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue, CurSwitch.Base);
               end
               else begin
-                EnableLargeRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue);
+                EnableLargeRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue, CurSwitch.Base);
               end
             end;
         end
@@ -1505,23 +1605,6 @@ end;
 procedure TfrmMain.btnSaveUserFormatClick(Sender: TObject);
 begin
   ConfigFile.SaveConfigFileUserPref(PATCH_CONFIG_FILE + '.usr');
-end;
-
-procedure TfrmMain.Outline1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  ix                : Integer;
-  ManPage           : string;
-begin
-  Exit;
-  ix := Outline1.SelectedItem;
-  if (ix >= 0) then begin
-    case Key of
-      VK_F1: begin
-          ManPage := Format(_('http://wiki.ttdpatch.net/tiki-index.php?page=%s'), [CurSwitch.ManPage]);
-          Shellexecute(Handle, 'open', PChar(ManPage), nil, nil, SW_RESTORE);
-        end;
-    end
-  end
 end;
 
 procedure TfrmMain.Outline1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -1585,7 +1668,7 @@ begin
               else if rgBoolOn.Checked then begin
                 CurSwitch.ConfigValue := OffOn[1];
                 // Set all bits that are not defined in the config
-                bw := ConvertSwitchStrToInt(IntToStr(CurSwitch.DefValue), CurSwitch.DefValue);
+                bw := ConvertSwitchStrToInt(IntToStrDec(CurSwitch.DefValue), CurSwitch.DefValue, CurSwitch.Base);
                 for b := 0 to Pred(Length(CurSwitch.BitDescr)) do begin
                   if not CurSwitch.BitDescr[b].Changed then begin
                     CurSwitch.BitDescr[b].Changed := True;
@@ -1622,7 +1705,7 @@ begin
               ReplaceValue(ix, CurSwitch.BitDescr[CurBitIx].ConfigValue);
 
               // Set all bits that are not defined in the config
-              bw := ConvertSwitchStrToInt(IntToStr(CurSwitch.DefValue), CurSwitch.DefValue);
+              bw := ConvertSwitchStrToInt(IntToStrDec(CurSwitch.DefValue), CurSwitch.DefValue, CurSwitch.Base);
               for b := 0 to Pred(Length(CurSwitch.BitDescr)) do begin
                 if not CurSwitch.BitDescr[b].Changed then begin
                   CurSwitch.BitDescr[b].Changed := True;
@@ -1915,12 +1998,12 @@ begin
       crSmallRange: begin
           CurSwitch.ConfigValue := CurSwitch.OriginalValue;
           ReplaceValue(ix, CurSwitch.ConfigValue);
-          EnableSmallRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue);
+          EnableSmallRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue, CurSwitch.Base);
         end;
       crLargeRange: begin
           CurSwitch.ConfigValue := CurSwitch.OriginalValue;
           ReplaceValue(ix, CurSwitch.ConfigValue);
-          EnableLargeRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue);
+          EnableLargeRangeInput(CurSwitch.ConfigValue, CurSwitch.RangeLow, CurSwitch.RangeHigh, CurSwitch.DefValue, CurSwitch.Base);
         end;
     end
   end;
@@ -1971,6 +2054,29 @@ begin
   while (FileExists(Format('%s.%4.4d', [FileName, i]))) do
     Inc(i);
   RenameFile(FileName, Format('%s.%4.4d', [FileName, i]));
+end;
+
+procedure TfrmMain.mmDescriptionDblClick(Sender: TObject);
+begin
+  if mmDescription.ReadOnly = False then begin
+    mmDescription.ReadOnly := True;
+    mmDescription.Color := clBtnFace;
+    ConfigFile.InitialComments := mmDescription.Text;
+  end
+  else begin
+    if Label1.Caption = _('File comments') then begin
+      mmDescription.ReadOnly := False;
+      mmDescription.Color := clWindow;
+    end
+  end
+end;
+
+procedure TfrmMain.mmDescriptionExit(Sender: TObject);
+begin
+  if mmDescription.Enabled then begin
+    mmDescription.ReadOnly := True;
+    mmDescription.Color := clBtnFace;
+  end
 end;
 
 end.

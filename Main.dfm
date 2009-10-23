@@ -146,7 +146,6 @@ object frmMain: TfrmMain
       Width = 23
       Height = 22
       Hint = 'Save the config file (in user format)'
-      Enabled = False
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000130B0000130B00001000000000000000000000000000
@@ -161,7 +160,6 @@ object frmMain: TfrmMain
         99337F3FF7F3733777F30F08F0F0337999337F7737F73F7777330FFFF0039999
         93337FFFF7737777733300000033333333337777773333333333}
       NumGlyphs = 2
-      Visible = False
       OnClick = btnSaveUserFormatClick
     end
     object ToolbarButton976: TToolbarButton97
@@ -169,12 +167,16 @@ object frmMain: TfrmMain
       Top = 6
       Width = 23
       Height = 22
+      Enabled = False
+      Visible = False
     end
     object ToolbarButton977: TToolbarButton97
       Left = 184
       Top = 6
       Width = 23
       Height = 22
+      Enabled = False
+      Visible = False
     end
     object Label2: TLabel
       Left = 270
@@ -208,9 +210,9 @@ object frmMain: TfrmMain
     object Label1: TLabel
       Left = 8
       Top = 8
-      Width = 51
+      Width = 83
       Height = 16
-      Caption = 'Category'
+      Caption = 'File comments'
     end
     object lbTextVale: TLabel
       Left = 16
@@ -231,6 +233,8 @@ object frmMain: TfrmMain
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 3
+      OnDblClick = mmDescriptionDblClick
+      OnExit = mmDescriptionExit
     end
     object pgEdits: TPageControl
       Left = 14
@@ -482,7 +486,6 @@ object frmMain: TfrmMain
     Align = alClient
     TabOrder = 0
     OnClick = Outline1Click
-    OnKeyDown = Outline1KeyDown
     OnKeyUp = Outline1KeyUp
     ItemSeparator = '\'
   end
