@@ -229,7 +229,7 @@ type
   end;
 
 var
-  frmMain           : TfrmMain;
+  frmMain                     : TfrmMain;
 
 implementation
 
@@ -247,17 +247,17 @@ uses
 
 const
 
-  PATCH_CONFIG_FILE = 'ttdpatch.cfg';
-  PATCH_TEMPLATE_FILE = 'switches.xml';
-  PATCH_WIN_NAME    = 'ttdpatchw';
-  PATCH_DOS_NAME    = 'ttdpatch';
+  PATCH_CONFIG_FILE           = 'ttdpatch.cfg';
+  PATCH_TEMPLATE_FILE         = 'switches.xml';
+  PATCH_WIN_NAME              = 'ttdpatchw';
+  PATCH_DOS_NAME              = 'ttdpatch';
 
-  SwitchTypeNames   : array[swUnknown..swSpecial] of string =
+  SwitchTypeNames             : array[swUnknown..swSpecial] of string =
     ('(unknown)', 'Bool', 'Bitswitch', 'Range', 'Special');
 
-  OffOn             : array[0..1] of string = ('off', 'on');
+  OffOn                       : array[0..1] of string = ('off', 'on');
 
-  Pow2              : array[0..31] of DWORD = (
+  Pow2                        : array[0..31] of DWORD = (
     $00000001, $00000002, $00000004, $00000008,
     $00000010, $00000020, $00000040, $00000080,
     $00000100, $00000200, $00000400, $00000800,
@@ -313,19 +313,42 @@ end;
 
 function IntToStrBased(Value: Integer; Base: Integer): string; overload;
 var
-  Value64: Int64;
+  Value64                     : Int64;
 begin
   Value64 := Value;
   Result := IntToStrBased(Value64, Base);
 end;
 
+function BinStrToInt(s: string): Integer; // ### might need to go 64 bit
+var
+  i                           : Integer;
+begin
+  Result := 0;
+  i := 1;
+  while (i <= Length(s)) do begin
+    Result := Result * 2;
+    if (s[i] = '1') then
+      Inc(Result);
+    Inc(i);
+  end
+end;
+
 function StrToIntBased(ValueStr: string; Base: Integer): Int64;
 var
   Index                       : Integer;
-  Sign                        : Integer;
+  Sign                        : Int64;
+  StrType                     : set of (stBin, stDec, stHex);
 begin
   Result := 0;
-  if (Base < 1) or (Base = 10) then begin
+  if (Base < 1) then begin
+    // Old version of TTDPatch, no Base info.
+    try
+      Result := StrToInt64(ValueStr);
+    except
+      Result := StrToInt64('$' + ValueStr);
+    end
+  end
+  else if (Base = 10) then begin
     Result := StrToInt(ValueStr);
   end
   else if Length(ValueStr) > 0 then begin
@@ -355,9 +378,9 @@ end;
 
 function SafeFormat(f: string; args: array of const; Base: Integer = 10): string;
 var
-  p1, p2            : Integer;
-  ArgIx             : Integer;
-  ArgString         : string;
+  p1, p2                      : Integer;
+  ArgIx                       : Integer;
+  ArgString                   : string;
 begin
   Result := '';
   ArgIx := Low(args);
@@ -370,8 +393,8 @@ begin
         System.vtInt64: ArgString := IntToStrBased(args[ArgIx].VInt64^, Base);
         System.vtString: ArgString := args[ArgIx].VString^;
         System.vtAnsiString: ArgString := PChar(args[ArgIx].VAnsiString);
-        else
-          ArgString := _('(Error: Unexpected argument type)');
+      else
+        ArgString := _('(Error: Unexpected argument type)');
       end;
       Inc(ArgIx);
     end
@@ -391,9 +414,9 @@ end;
 
 function IsNumericString(s: string): Boolean;
 const
-  LoInt             = Low(Integer);
+  LoInt                       = Low(Integer);
 var
-  i                 : Integer;
+  i                           : Integer;
 begin
   if (Length(s) > 0) then begin
     if (s[1] = '#') then begin
@@ -412,23 +435,9 @@ begin
     Result := False;
 end;
 
-function BinStrToInt(s: string): Integer; // ### might need to go 64 bit
-var
-  i                 : Integer;
-begin
-  Result := 0;
-  i := 1;
-  while (i <= Length(s)) do begin
-    Result := Result * 2;
-    if (s[i] = '1') then
-      Inc(Result);
-    Inc(i);
-  end
-end;
-
 function ConvertSwitchStrToInt(Str: string; DefVal: Int64; Base: Integer): Int64;
 var
-  s                 : string;
+  s                           : string;
 begin
   s := LowerCase(Str);
   if (s = 'off') or (s = 'no') or (s = 'n') then
@@ -453,7 +462,7 @@ end;
 
 function TCategories.AddSwitch(s: string; swRef, Level: Integer): integer;
 var
-  ix                : Integer;
+  ix                          : Integer;
 begin
   ix := Length(fStorage);
   SetLength(fStorage, ix + 1);
@@ -465,15 +474,15 @@ end;
 
 procedure TCategories.FillFromSwitchList(SwitchList: TSwitchList);
 var
-  i                 : Integer;
-  cn                : Integer;
-  ct                : string;
-  ctx               : Integer;
-  swxb, swxe        : Integer;
-  swx               : Integer;
-  b                 : Integer;
-  bfc               : Integer;
-  j                 : Integer;
+  i                           : Integer;
+  cn                          : Integer;
+  ct                          : string;
+  ctx                         : Integer;
+  swxb, swxe                  : Integer;
+  swx                         : Integer;
+  b                           : Integer;
+  bfc                         : Integer;
+  j                           : Integer;
 begin
   ct := '###';
   for i := 0 to Pred(Length(SwitchList.fSwitches)) do begin
@@ -483,7 +492,6 @@ begin
     end
   end;
 end;
-
 
 function TCategories.GetCount: Integer;
 begin
@@ -524,15 +532,15 @@ end;
 
 procedure TSwitchList.AddFromString(ConfigLine: string);
 var
-  SwitchName        : string;
-  BitFieldName      : string;
-  SwitchValue       : string;
-  sp                : Integer;
-  dp                : Integer;
-  i                 : Integer;
-  b                 : Integer;
-  bw                : DWORD;
-  L                 : Integer;
+  SwitchName                  : string;
+  BitFieldName                : string;
+  SwitchValue                 : string;
+  sp                          : Integer;
+  dp                          : Integer;
+  i                           : Integer;
+  b                           : Integer;
+  bw                          : DWORD;
+  L                           : Integer;
 begin
   sp := Pos('=', ConfigLine);
   if (sp = 0) then
@@ -638,10 +646,10 @@ end;
 
 function TSwitchList.LoadConfigFile(FileName: string): boolean;
 var
-  i                 : Integer;
-  p                 : Integer;
-  s                 : string;
-  ic                : Boolean;
+  i                           : Integer;
+  p                           : Integer;
+  s                           : string;
+  ic                          : Boolean;
 begin
   InitialComments := '';
   fLines := TStringList.Create;
@@ -656,7 +664,7 @@ begin
         if (Length(s) = 0) then
           ic := False;
         if ic then begin
-          InitialComments := InitialComments + Trim(fLines[i])+ #13 + #10;
+          InitialComments := InitialComments + Trim(fLines[i]) + #13 + #10;
         end
       end
       else begin
@@ -675,25 +683,25 @@ end;
 
 procedure TSwitchList.LoadTemplateFile(FileName: string);
 var
-  Root              : TJvSimpleXMLElem;
-  CatRoot           : TJvSimpleXMLElem;
-  Child             : TJvSimpleXMLElem;
-  b                 : Integer;
-  c                 : Integer;
-  bd                : Integer;
-  i                 : Integer;
-  j                 : Integer;
-  LastI             : Integer;
-  CatStack          : array[0..5] of TJvSimpleXMLElem;
-  CatStackPtr       : Integer;
-  SwitchCount       : Integer;
+  Root                        : TJvSimpleXMLElem;
+  CatRoot                     : TJvSimpleXMLElem;
+  Child                       : TJvSimpleXMLElem;
+  b                           : Integer;
+  c                           : Integer;
+  bd                          : Integer;
+  i                           : Integer;
+  j                           : Integer;
+  LastI                       : Integer;
+  CatStack                    : array[0..5] of TJvSimpleXMLElem;
+  CatStackPtr                 : Integer;
+  SwitchCount                 : Integer;
 
   procedure HandleCategory(Level, Order: Integer);
   var
-    i               : Integer;
-    b               : Integer;
-    Child           : TJvSimpleXMLElem;
-    CatRoot         : TJvSimpleXMLElem;
+    i                         : Integer;
+    b                         : Integer;
+    Child                     : TJvSimpleXMLElem;
+    CatRoot                   : TJvSimpleXMLElem;
   begin
     for i := 0 to Pred(CatStack[CatStackPtr - 1].Items.Count) do begin
       Child := CatStack[CatStackPtr - 1].Items[i];
@@ -728,8 +736,6 @@ var
         end
         else if (Child.Name = 'range') then begin
           fSwitches[SwitchCount].Base := Child.Properties.IntValue('base');
-          if fSwitches[SwitchCount].Base = 0 then
-            fSwitches[SwitchCount].Base := 10;
           fSwitches[SwitchCount].SwitchType := swRange;
           fSwitches[SwitchCount].RangeLow := StrToIntBased(Child.Properties.Value('min'), fSwitches[SwitchCount].Base);
           fSwitches[SwitchCount].RangeHigh := StrToIntBased(Child.Properties.Value('max'), fSwitches[SwitchCount].Base);
@@ -769,7 +775,7 @@ var
 
   function LevelCount(s: string): Integer;
   var
-    p               : integer;
+    p                         : integer;
   begin
     Result := 0;
     for p := 1 to Pred(Length(s)) do
@@ -833,8 +839,6 @@ begin
       else if (Child.Name = 'range') then begin
         // 'base' Should never occur in old XML
         fSwitches[SwitchCount].Base := Child.Properties.IntValue('base');
-        if fSwitches[SwitchCount].Base = 0 then
-          fSwitches[SwitchCount].Base := 10;
 
         fSwitches[i].SwitchType := swRange;
         fSwitches[i].RangeLow := StrToIntBased(Child.Properties.Value('min'), fSwitches[SwitchCount].Base);
@@ -874,17 +878,17 @@ end;
 
 procedure TSwitchList.SaveConfigFileCanonical(FileName: string);
 var
-  i                 : Integer;
-  b                 : Integer;
-  Cat               : Integer;
-  p                 : Integer;
-  sl                : TStringList;
-  Desc              : string;
-  s                 : string;
+  i                           : Integer;
+  b                           : Integer;
+  Cat                         : Integer;
+  p                           : Integer;
+  sl                          : TStringList;
+  Desc                        : string;
+  s                           : string;
 
   function BitsChanged(Switch: TSwitch): Boolean;
   var
-    b               : Integer;
+    b                         : Integer;
   begin
     Result := False;
     for b := 0 to Pred(Length(Switch.BitDescr)) do begin
@@ -1002,19 +1006,19 @@ type
   TState = (stSwitch, stBitSwitch, stSkipToValue, stSkipValue, stDone);
 
 var
-  i                 : Integer;
-  b                 : Integer;
-  p                 : Integer;
-  sl                : TStringList;
-  s                 : string;
-  Line              : string;
-  Switch            : string;
-  BitSwitch         : string;
-  Desc              : string;
-  State             : TState;
-  ValueStart        : Integer;
-  ValueEnd          : Integer;
-  Cnt               : Integer;
+  i                           : Integer;
+  b                           : Integer;
+  p                           : Integer;
+  sl                          : TStringList;
+  s                           : string;
+  Line                        : string;
+  Switch                      : string;
+  BitSwitch                   : string;
+  Desc                        : string;
+  State                       : TState;
+  ValueStart                  : Integer;
+  ValueEnd                    : Integer;
+  Cnt                         : Integer;
 begin
   sl := TStringList.Create;
   sl.LoadFromFile(PATCH_CONFIG_FILE);
@@ -1176,9 +1180,9 @@ end;
 
 procedure TSwitchList.SortByCategory;   // and secondary by name
 var
-  tmp               : TStringList;
-  sw                : array of TSwitch;
-  i                 : Integer;
+  tmp                         : TStringList;
+  sw                          : array of TSwitch;
+  i                           : Integer;
 begin
   tmp := TStringList.Create;
   for i := 0 to Pred(Length(fSwitches)) do begin
@@ -1204,16 +1208,16 @@ end;
 
 procedure TfrmMain.FillOutline(Categories: TCategories; SwitchList: TSwitchList);
 var
-  i                 : Integer;
-  cn                : Integer;
-  ct                : string;
-  ctx               : Integer;
-  swxb, swxe        : Integer;
-  swx               : Integer;
-  b                 : Integer;
-  bfc               : Integer;
-  j                 : Integer;
-  NewMarker         : string;
+  i                           : Integer;
+  cn                          : Integer;
+  ct                          : string;
+  ctx                         : Integer;
+  swxb, swxe                  : Integer;
+  swx                         : Integer;
+  b                           : Integer;
+  bfc                         : Integer;
+  j                           : Integer;
+  NewMarker                   : string;
 begin
   ctx := 0;
   for i := 0 to Pred(Categories.Count) do begin
@@ -1274,13 +1278,13 @@ end;
 
 procedure TfrmMain.FixOutlineLevels;
 var
-  i                 : Integer;
-  sl                : TStringList;
-  Level             : Integer;
-  s                 : string;
-  n                 : TOutlineNode;
-  p                 : TOutlineNode;
-  ix                : Integer;
+  i                           : Integer;
+  sl                          : TStringList;
+  Level                       : Integer;
+  s                           : string;
+  n                           : TOutlineNode;
+  p                           : TOutlineNode;
+  ix                          : Integer;
 begin
   sl := TStringList.Create;
   try
@@ -1482,17 +1486,17 @@ end;
 
 procedure TfrmMain.Outline1Click(Sender: TObject);
 var
-  ix                : Integer;
-  p                 : Integer;
-  b                 : Integer;
-  s                 : string;
-  swName            : string;
-  swCmd             : string;
-  BitDescription    : string;
-  BitName           : string;
-  min               : Integer;
-  max               : Integer;
-  default           : Integer;
+  ix                          : Integer;
+  p                           : Integer;
+  b                           : Integer;
+  s                           : string;
+  swName                      : string;
+  swCmd                       : string;
+  BitDescription              : string;
+  BitName                     : string;
+  min                         : Integer;
+  max                         : Integer;
+  default                     : Integer;
 
 begin
   DisableAllInput;
@@ -1609,8 +1613,8 @@ end;
 
 procedure TfrmMain.Outline1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
-  ix                : Integer;
-  ManPage           : string;
+  ix                          : Integer;
+  ManPage                     : string;
 begin
   ix := Outline1.SelectedItem;
   if (ix >= 0) then begin
@@ -1626,8 +1630,8 @@ end;
 
 procedure TfrmMain.ReplaceValue(ix: Integer; Value: string);
 var
-  s                 : string;
-  p                 : Integer;
+  s                           : string;
+  p                           : Integer;
 begin
   s := Outline1[ix].Text;
   p := Pos(' ', s);
@@ -1640,9 +1644,9 @@ end;
 
 procedure TfrmMain.UpdateView;
 var
-  ix                : Integer;
-  b                 : Integer;
-  bw                : Integer;
+  ix                          : Integer;
+  b                           : Integer;
+  bw                          : Integer;
 begin
   ix := Outline1.SelectedItem;
   if Assigned(CurSwitch) and (ix <> 0) then begin
@@ -1773,8 +1777,8 @@ end;
 
 function TfrmMain.SearchSwitch(Search: string; Start: integer): Integer;
 var
-  i                 : Integer;
-  s                 : string;
+  i                           : Integer;
+  s                           : string;
 begin
   s := LowerCase(Search);
   for i := Start to Pred(Outline1.ItemCount) do begin
@@ -1788,9 +1792,9 @@ end;
 
 function TfrmMain.SearchDescr(Search: string; Start: integer): Integer;
 var
-  i                 : Integer;
-  ix                : Integer;
-  s                 : string;
+  i                           : Integer;
+  ix                          : Integer;
+  s                           : string;
 begin
   s := LowerCase(Search);
   for i := Start to Pred(Outline1.ItemCount) do begin
@@ -1807,8 +1811,8 @@ end;
 
 procedure TfrmMain.ExpandToMatch(ix: Integer);
 var
-  i                 : Integer;
-  p                 : Integer;
+  i                           : Integer;
+  p                           : Integer;
 begin
   if (Outline1[ix].Parent.Index > 0) then
     ExpandToMatch(Outline1[ix].Parent.Index);
@@ -1817,7 +1821,7 @@ end;
 
 procedure TfrmMain.btnFindFirstClick(Sender: TObject);
 var
-  i                 : Integer;
+  i                           : Integer;
 begin
   if cbSearchDescription.Checked then
     i := SearchDescr(edSearch.Text, 1)
@@ -1833,7 +1837,7 @@ end;
 
 procedure TfrmMain.btnFindNextClick(Sender: TObject);
 var
-  i                 : Integer;
+  i                           : Integer;
 begin
   if cbSearchDescription.Checked then
     i := SearchDescr(edSearch.Text, Outline1.SelectedItem + 1)
@@ -1963,7 +1967,7 @@ end;
 
 procedure TfrmMain.btnUndoClick(Sender: TObject);
 var
-  ix                : Integer;
+  ix                          : Integer;
 begin
   ix := Outline1.SelectedItem;
   if Assigned(CurSwitch) and (ix <> 0) then begin
@@ -2012,9 +2016,9 @@ end;
 
 procedure TfrmMain.JvAppEvents1Message(var Msg: tagMSG; var Handled: Boolean);
 var
-  Delta             : ShortInt;
-  Lines             : ShortInt;
-  ScrollLines       : UINT;
+  Delta                       : ShortInt;
+  Lines                       : ShortInt;
+  ScrollLines                 : UINT;
 begin
   if (Msg.message = WM_MOUSEWHEEL) then begin
     if (ActiveControl = Outline1) then begin
@@ -2048,7 +2052,7 @@ end;
 
 procedure TfrmMain.BackupOldConfigFile(FileName: string);
 var
-  i                 : Integer;
+  i                           : Integer;
 begin
   i := 0;
   while (FileExists(Format('%s.%4.4d', [FileName, i]))) do

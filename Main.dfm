@@ -346,21 +346,23 @@ object frmMain: TfrmMain
         ImageIndex = 3
         TabVisible = False
         object GroupBox2: TGroupBox
-          Left = 3
+          Left = 0
           Top = -2
-          Width = 255
+          Width = 259
           Height = 44
           TabOrder = 0
           object edLargeRange: TJvValidateEdit
-            Left = 183
+            Left = 162
             Top = 14
-            Width = 65
+            Width = 90
             Height = 24
             Hint = 'Enter the switch value'
             AllowEmpty = True
             Alignment = taLeftJustify
             CheckChars = '01234567890'
             CriticalPoints.CheckPoints = cpBoth
+            CriticalPoints.MaxValueIncluded = False
+            CriticalPoints.MinValueIncluded = False
             DisplayFormat = dfCheckChars
             EditText = '0'
             Enabled = False
@@ -370,7 +372,7 @@ object frmMain: TfrmMain
             OnChange = edLargeRangeChange
           end
           object rgLaOff: TRadioButton
-            Left = 8
+            Left = 6
             Top = 17
             Width = 41
             Height = 17
@@ -380,7 +382,7 @@ object frmMain: TfrmMain
             OnClick = rgLaOffClick
           end
           object rgLaOn: TRadioButton
-            Left = 68
+            Left = 55
             Top = 17
             Width = 45
             Height = 17
@@ -390,7 +392,7 @@ object frmMain: TfrmMain
             OnClick = rgLaOnClick
           end
           object rgLaValue: TRadioButton
-            Left = 128
+            Left = 107
             Top = 17
             Width = 55
             Height = 17
